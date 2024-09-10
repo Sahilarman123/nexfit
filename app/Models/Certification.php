@@ -6,15 +6,15 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Certification extends Model
-{
-    use HasFactory;
+    {
+        use HasFactory;
 
-    protected $fillable = [
-        'title',
-        'issuer',
-        'issue_date',
-        'expiry_date',
-        'status',
-    ];
-}
+        protected $table = 'certificates';
+        protected $primaryKey = 'c_id';
+
+        protected $fillable = [
+            'c_name',
+        ];
+
+    }
 

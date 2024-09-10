@@ -2,103 +2,104 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use App\Models\SocialAccount;
-use App\Events\UserRegistered;
+use App\Models\Trainer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'first_name' => 'required|string|max:100',
-            'last_name' => 'required|string|max:100',
-            'email' => 'required|string|email|max:255|unique:users',
-            'phone_no' => 'required|string|max:20',
-            'date_of_birth' => 'required|date',
-            'gender' => 'required|in:male,female,other',
-            'address' => 'required|string|max:255',
-            'city' => 'required|string|max:100',
-            'state' => 'required|string|max:100',
-            'postal_code' => 'required|string|max:20',
-            'country' => 'required|string|max:100',
-            'password' => 'required|string|min:8|confirmed'
+            'trainer_name' => 'required|string|max:100',
+            'trainer_last_name' => 'required|string|max:100',
+            'trainer_email' => 'required|string|email|max:255|unique:trainers',
+            'trainer_mobile' => 'required|string|max:20',
+            'trainer_dob' => 'required|date',
+            'trainer_gender' => 'required|in:male,female,other',
+            'trainer_address' => 'required|string|max:255',
+            'trainer_city' => 'required|string|max:100',
+            'trainer_state' => 'required|string|max:100',
+            'trainer_pincode' => 'required|string|max:20',
+            'trainer_country' => 'required|string|max:100',
+            'trainer_password' => 'required|string|min:8|confirmed'
         ]);
 
         if ($validator->fails()) {
             return response()->json($validator->errors(), 422);
         }
 
-        $user = User::create([
-            'first_name' => $request->first_name,
-            'last_name' => $request->last_name,
-            'email' => $request->email,
-            'phone_no' => $request->phone_no,
-            'date_of_birth' => $request->date_of_birth,
-            'gender' => $request->gender,
-            'address' => $request->address,
-            'city' => $request->city,
-            'state' => $request->state,
-            'postal_code' => $request->postal_code,
-            'country' => $request->country,
-            'password' => Hash::make($request->password),
+        $trainer = Trainer::create([
+            'trainer_name' => $request->trainer_name,
+            'trainer_last_name' => $request->trainer_last_name,
+            'trainer_email' => $request->trainer_email,
+            'trainer_mobile' => $request->trainer_mobile,
+            'trainer_dob' => $request->trainer_dob,
+            'trainer_gender' => $request->trainer_gender,
+            'trainer_address' => $request->trainer_address,
+            'trainer_city' => $request->trainer_city,
+            'trainer_state' => $request->trainer_state,
+            'trainer_pincode' => $request->trainer_pincode,
+            'trainer_country' => $request->trainer_country,
+            'trainer_password' => Hash::make($request->trainer_password),
         ]);
 
-        event(new UserRegistered($user));
+        // Handle any post-registration actions
 
-        return response()->json(['message' => 'User registered successfully'], 201);
+        return response()->json(['message' => 'Trainer registered successfully'], 201);
     }
 
     public function login(Request $request)
     {
-        $credentials = $request->only('email', 'password');
+        // Change 'email' to 'trainer_email' and 'password' to 'trainer_password'
+        $credentials = [
+            'trainer_email' => $request->input('trainer_email'),
+            'password' => $request->input('trainer_password'),
+        ];
 
-        if (Auth::attempt($credentials)) {
-            $user = Auth::user();
-            $token = $user->createToken('LaravelAuthApp')->accessToken;
+        if (Auth::guard('trainer')->attempt($credentials)) {
+            $trainer = Auth::guard('trainer')->user();
+            $token = Str::random(60); // Handle token generation as needed
+            // Save or return the token as needed
             return response()->json(['token' => $token], 200);
         } else {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
     }
 
+
     public function socialLogin(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'provider' => 'required|string',
             'provider_id' => 'required|string',
-            'email' => 'required|string|email|max:255',
-            'first_name' => 'required|string|max:100',
-            'last_name' => 'required|string|max:100',
+            'trainer_email' => 'required|string|email|max:255',
+            'trainer_name' => 'required|string|max:100',
+            'trainer_last_name' => 'required|string|max:100',
         ]);
 
         if ($validator->fails()) {
             return response()->json($validator->errors(), 422);
         }
 
-        $user = User::where('email', $request->email)->first();
+        $trainer = Trainer::where('trainer_email', $request->trainer_email)->first();
 
-        if (!$user) {
-            $user = User::create([
-                'first_name' => $request->first_name,
-                'last_name' => $request->last_name,
-                'email' => $request->email,
-                'password' => Hash::make('social_login_dummy_password'),
+        if (!$trainer) {
+            $trainer = Trainer::create([
+                'trainer_name' => $request->trainer_name,
+                'trainer_last_name' => $request->trainer_last_name,
+                'trainer_email' => $request->trainer_email,
+                'trainer_password' => Hash::make('social_login_dummy_password'),
             ]);
         }
 
-        $socialAccount = SocialAccount::firstOrCreate([
-            'user_id' => $user->id,
-            'provider' => $request->provider,
-            'provider_id' => $request->provider_id,
-        ]);
+        // Handle social account linking
 
-        $token = $user->createToken('LaravelAuthApp')->accessToken;
+        $token = Str::random(60); // Generate a token or use another method
+        // Save the token to the trainer's record or return as response
         return response()->json(['token' => $token], 200);
     }
 }
-

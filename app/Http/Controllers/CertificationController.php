@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Certification;
@@ -18,17 +18,7 @@ class CertificationController extends Controller
     // Create a new certification
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'title' => 'required|string|max:255',
-            'issuer' => 'required|string|max:255',
-            'issue_date' => 'required|date',
-            'expiry_date' => 'nullable|date',
-            'status' => 'required|in:active,inactive',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 400);
-        }
+        
 
         $certification = Certification::create($request->all());
 
@@ -56,17 +46,7 @@ class CertificationController extends Controller
             return response()->json(['message' => 'Certification not found'], 404);
         }
 
-        $validator = Validator::make($request->all(), [
-            'title' => 'required|string|max:255',
-            'issuer' => 'required|string|max:255',
-            'issue_date' => 'required|date',
-            'expiry_date' => 'nullable|date',
-            'status' => 'required|in:active,inactive',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 400);
-        }
+        
 
         $certification->update($request->all());
 
